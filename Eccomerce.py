@@ -4,6 +4,11 @@ import os
 from datetime import datetime
 
 # ==========================================
+# DESARROLLADO POR BENJA: PARÁMETROS LOGÍSTICOS
+# ==========================================
+CATEGORIAS_DISPONIBLES = ["Filtros", "Frenos", "Motor y Encendido", "Transmisión", "Lubricantes", "Otros"]
+
+# ==========================================
 # CONFIGURACIÓN DE LA PÁGINA
 # ==========================================
 st.set_page_config(page_title="Gestión Taller Benja", layout="wide")
@@ -65,15 +70,15 @@ if 'stock_df' not in st.session_state or 'historial_df' not in st.session_state:
 if 'recovery_backup' not in st.session_state:
     st.session_state.recovery_backup = tuple(st.session_state.stock_df.itertuples(index=False))
 
-# Variables para guardar el último ticket generado en pantalla
 if 'ultimo_ticket' not in st.session_state:
     st.session_state.ultimo_ticket = None
 
 # ==========================================
 # SIDEBAR: ACCIONES DEL PROGRAMA
 # ==========================================
-st.sidebar.title(f"👤 {st.session_state.usuario_actual.upper()}")
-st.sidebar.write(f"**Rol:** {st.session_state.usuario_rol.upper()}")
+st.sidebar.title(f"🛠️ Taller Benja")
+st.sidebar.write(f"👤 **Usuario:** {st.session_state.usuario_actual.upper()}")
+st.sidebar.write(f"💼 **Rol:** {st.session_state.usuario_rol.upper()}")
 
 if st.sidebar.button("🚪 Cerrar Sesión"):
     st.session_state.autenticado = False
@@ -84,8 +89,11 @@ if st.sidebar.button("🚪 Cerrar Sesión"):
 
 st.sidebar.markdown("---")
 
-# Registro de usuarios (Solo Admin)
+# Registro exclusivo (Solo Admin)
 if st.session_state.usuario_rol == "admin":
+    
+    # [HUECO INDENTADO PARA EL INTEGRANTE 2: El formulario de Carga de Repuestos va a ir pegado acá abajo]
+    
     st.sidebar.header("➕ Registrar Nuevo Usuario")
     nuevo_usuario = st.sidebar.text_input("Nuevo Usuario:").strip().lower()
     nueva_clave = st.sidebar.text_input("Nueva Contraseña:", type="password")
@@ -125,7 +133,6 @@ if st.sidebar.button("Procesar Transacción"):
                 st.stop() 
             st.session_state.stock_df.loc[st.session_state.stock_df['id'] == id_prod, 'cantidad'] -= cantidad
             
-            # Guardamos los datos para armar el comprobante de venta
             st.session_state.ultimo_ticket = {
                 "tipo": "FACTURA B - CONSUMIDOR FINAL",
                 "numero": f"0001-{int(datetime.now().timestamp())}",
@@ -138,7 +145,7 @@ if st.sidebar.button("Procesar Transacción"):
             }
         else:
             st.session_state.stock_df.loc[st.session_state.stock_df['id'] == id_prod, 'cantidad'] += cantidad
-            st.session_state.ultimo_ticket = None # Las compras no generan ticket de venta
+            st.session_state.ultimo_ticket = None 
         
         st.session_state.stock_df.to_csv('stock.csv', index=False, sep=';')
         
@@ -189,70 +196,92 @@ if st.session_state.ultimo_ticket:
         st.session_state.ultimo_ticket = None
         st.rerun()
 
-st.subheader("📦 Inventario en Tiempo Real")
+# --- MEJORA VISUAL POR PESTAÑAS ---
+tab1, tab2, tab3 = st.tabs(["📊 Inventario de Repuestos", "📜 Historial de Movimientos", "⚠️ Alertas de Compra"])
 
-def resaltar_bajo_stock(row):
-    cant = row.get('cantidad', 0)
-    minimo = row.get('stock_minimo', 0)
-    if cant <= minimo:
-        return ['background-color: #ffcccc'] * len(row)
-    return [''] * len(row)
+with tab1:
+    st.subheader("Inventario en Tiempo Real")
 
-st.dataframe(st.session_state.stock_df.style.format({
-    "id": "{:.0f}", 
-    "cantidad": "{:.0f}", 
-    "stock_minimo": "{:.0f}",
-    "precio": "${:,.2f}"
-}).apply(resaltar_bajo_stock, axis=1))
+    # Si la columna 'categoria' no existe en el CSV todavía, la creamos vacía en el DataFrame
+    if 'categoria' not in st.session_state.stock_df.columns:
+        st.session_state.stock_df['categoria'] = "Otros"
 
-# ALERTAS Y GENERACIÓN DE ORDEN DE COMPRA
-st.subheader("⚠️ Alertas de Reposición Crítica")
-hay_alertas = False
-for index, row in st.session_state.stock_df.iterrows():
-    cant = row.get('cantidad', 0)
-    minimo = row.get('stock_minimo', 0)
-    nombre_prod = row.get('nombre', 'Producto')
-    marca_prod = row.get('marca', '')
-    
-    if cant <= minimo:
-        hay_alertas = True
-        col_cartel, col_boton = st.columns([3, 1])
-        with col_cartel:
-            st.warning(f"**Falta Stock:** **{nombre_prod}** ({marca_prod}) llegó a **{cant:.0f}** unidades. (Mínimo: {minimo:.0f})")
-        with col_boton:
-            # Botón interactivo para simular la orden de compra en el momento
-            if st.button(f"📝 Orden de Compra ID {row.get('id'):.0f}"):
-                st.session_state.orden_compra_texto = f"""
-                **ORDEN DE COMPRA GENERADA**
-                **Para:** Distribuidora Mayorista de Repuestos
-                **Fecha Emisión:** {datetime.now().strftime('%Y-%m-%d')}
-                
-                Solicitamos el envío urgente del siguiente ítem para reposición de stock:
-                - **Producto:** {nombre_prod}
-                - **Marca:** {marca_prod}
-                - **Cantidad sugerida a pedir:** {(minimo - cant) + 10:.0f} unidades.
-                
-                Autorizado por: {st.session_state.usuario_actual.upper()} - Taller Benja
-                """
+    # --- DESARROLLADO POR BENJA: FILTRADO VECTORIAL REACTIVO ---
+    filtro_cat = st.selectbox("🔍 Filtrar visualmente por Categoría:", ["Todas"] + CATEGORIAS_DISPONIBLES)
+        
+    if filtro_cat == "Todas":
+        df_mostrar = st.session_state.stock_df
+    else:
+        df_mostrar = st.session_state.stock_df[st.session_state.stock_df['categoria'].astype(str).str.lower() == filtro_cat.lower()]
 
-if not hay_alertas:
-    st.success("✅ Todo en orden. Todos los repuestos tienen stock suficiente.")
-    st.session_state.orden_compra_texto = None
+    def resaltar_bajo_stock(row):
+        cant = row.get('cantidad', 0)
+        minimo = row.get('stock_minimo', 0)
+        if cant <= minimo:
+            return ['background-color: #ffcccc'] * len(row)
+        return [''] * len(row)
 
-# Si se tocó el botón de orden de compra, se muestra acá
-if 'orden_compra_texto' in st.session_state and st.session_state.orden_compra_texto:
-    st.info("📋 Documento de Pedido listo para enviar al Proveedor:")
-    st.code(st.session_state.orden_compra_texto, language="markdown")
-    if st.button("Cerrar Vista de Orden de Compra"):
+    # CORREGIDO: Se agregó hide_index=True para eliminar la columna de la izquierda del todo
+    st.dataframe(
+        df_mostrar.style.format({
+            "id": "{:.0f}", 
+            "cantidad": "{:.0f}", 
+            "stock_minimo": "{:.0f}", 
+            "precio": "${:,.2f}"
+        }).apply(resaltar_bajo_stock, axis=1), 
+        use_container_width=True,
+        hide_index=True # <--- Esta es la propiedad que borra el índice molesto
+    )
+
+
+with tab2:
+    # HISTORIAL
+    st.subheader("📜 Últimos Movimientos")
+    st.dataframe(st.session_state.historial_df.tail(10).style.format({
+        "id_producto": "{:.0f}", 
+        "cantidad": "{:.0f}"
+    }), use_container_width=True)
+
+with tab3:
+    # ALERTAS Y GENERACIÓN DE ORDEN DE COMPRA
+    st.subheader("⚠️ Alertas de Reposición Crítica")
+    hay_alertas = False
+    for index, row in st.session_state.stock_df.iterrows():
+        cant = row.get('cantidad', 0)
+        minimo = row.get('stock_minimo', 0)
+        nombre_prod = row.get('nombre', 'Producto')
+        marca_prod = row.get('marca', '')
+        
+        if cant <= minimo:
+            hay_alertas = True
+            col_cartel, col_boton = st.columns([3, 1])
+            with col_cartel:
+                st.warning(f"**Falta Stock:** **{nombre_prod}** ({marca_prod}) llegó a **{cant:.0f}** unidades. (Mínimo: {minimo:.0f})")
+            with col_boton:
+                if st.button(f"📝 Orden de Compra ID {row.get('id'):.0f}"):
+                    st.session_state.orden_compra_texto = f"""
+                    **ORDEN DE COMPRA GENERADA**
+                    **Para:** Distribuidora Mayorista de Repuestos
+                    **Fecha Emisión:** {datetime.now().strftime('%Y-%m-%d')}
+                    
+                    Solicitamos el envío urgente del siguiente ítem para reposición de stock:
+                    - **Producto:** {nombre_prod}
+                    - **Marca:** {marca_prod}
+                    - **Cantidad sugerida a pedir:** {(minimo - cant) + 10:.0f} unidades.
+                    
+                    Autorizado por: {st.session_state.usuario_actual.upper()} - Taller Benja
+                    """
+
+    if not hay_alertas:
+        st.success("✅ Todo en orden. Todos los repuestos tienen stock suficiente.")
         st.session_state.orden_compra_texto = None
-        st.rerun()
 
-# HISTORIAL
-st.subheader("📜 Últimos Movimientos")
-st.dataframe(st.session_state.historial_df.tail(10).style.format({
-    "id_producto": "{:.0f}", 
-    "cantidad": "{:.0f}"
-}))
+    if 'orden_compra_texto' in st.session_state and st.session_state.orden_compra_texto:
+        st.info("📋 Documento de Pedido listo para enviar al Proveedor:")
+        st.code(st.session_state.orden_compra_texto, language="markdown")
+        if st.button("Cerrar Vista de Orden de Compra"):
+            st.session_state.orden_compra_texto = None
+            st.rerun()
 
 # ==========================================
 # 4. EXCLUSIVO ADMIN: PANEL DE CONTROL DE USUARIOS
@@ -264,7 +293,6 @@ if st.session_state.usuario_rol == "admin":
     col_tabla, col_eliminar = st.columns([2, 1])
     with col_tabla:
         st.markdown("**Usuarios Registrados Activos:**")
-        # CORREGIDO ACÁ: Cambiamos df_users por df_visibilidad
         st.dataframe(df_visibilidad, use_container_width=True) 
     with col_eliminar:
         st.markdown("**🗑️ Eliminar Usuario del Sistema:**")
