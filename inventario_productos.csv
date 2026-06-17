@@ -1,0 +1,37 @@
+id,nombre,cantidad,stock_minimo,precio,categoria
+1;Inyectores diésel;Bosch;Motor y Encendido;3;1100000;5
+2;Bombas de inyección;Bosch;Motor y Encendido;8;1400000;3
+3;Toberas de inyección;Bosch;Motor y Encendido;15;150000;5
+4;Válvulas reguladoras de presión;Bosch;Motor y Encendido;12;100000;4
+5;Sensor de presión del riel de combustible;Bosch;Motor y Encendido;20;50000;5
+6;Arandelas de cobre y kit de o-rings para inyectores;Genérico;Motor y Encendido;50;35000;10
+7;Turbocompresores;Garrett;Motor y Encendido;6;1350000;2
+8;Válvulas EGR;Valeo;Motor y Encendido;10;140000;3
+9;Actuadores de turbo;Garrett;Motor y Encendido;14;200000;4
+10;Mangueras de intercooler;Genérico;Motor y Encendido;25;100000;5
+11;Bujías;NGK;Motor y Encendido;40;50000;10
+12;Pastillas de freno;Frasle;Frenos;2;40000;5
+13;Amortiguadores;Monroe;Otros;16;200000;4
+14;Baterías;Moura;Motor y Encendido;11;200000;3
+15;Filtros de combustible diésel;Fram;Filtros;30;35000;8
+16;Filtros de aceite;Fram;Filtros;25;80000;6
+17;Filtros de aire;Fram;Filtros;35;30000;8
+18;Fluido para emisiones diésel;Elaion;Lubricantes;45;20000;10
+19;Bujías de precalentamiento;NGK;Motor y Encendido;24;130000;6
+20;Motors de arranque;Nosso;Motor y Encendido;7;160000;2
+21;Alternadores de servicio pesado;Prestolite;Motor y Encendido;5;285000;2
+22;Pistones y pernos;Mahle;Motor y Encendido;16;42000;4
+23;Aros de pistón;Mahle;Motor y Encendido;32;45000;8
+24;Camisas de cilindro;Mahle;Motor y Encendido;12;125000;4
+25;Juntas de tapa de cilindros;Taranto;Motor y Encendido;18;38000;5
+26;Válvulas de admisión y escape;Mahle;Motor y Encendido;48;25000;12
+27;Bomba de aceite;Duncan;Motor y Encendido;9;50000;3
+28;Kits de distribución;SKF;Motor y Encendido;14;70000;4
+29;Correas de distribución;Gates;Motor y Encendido;22;215000;5
+30;Poleas;SKF;Motor y Encendido;15;100000;4
+31;Bombas de agua;Dolz;Motor y Encendido;11;180000;3
+32;Termostatos;Vernet;Motor y Encendido;19;35000;5
+33;Embragues de ventilador;BorgWarner;Motor y Encendido;6;200000;2
+34;Sensores de posición de cigüeñal;Bosch;Motor y Encendido;14;40000;4
+35;Sensores de temperatura de gases de escape;Bosch;Motor y Encendido;8;90000;3
+36;Sensores de presión de sobrealimentación;Bosch;Motor y Encendido;13;20000;4
